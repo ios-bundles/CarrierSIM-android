@@ -54,6 +54,9 @@ jobs:
           javac -d build/gate-tests app/src/main/java/ru/carriersim/android/DeviceGate.java tests/DeviceGateTest.java
           java -cp build/gate-tests ru.carriersim.android.DeviceGateTest
 
+      - name: Set up Android SDK
+        uses: android-actions/setup-android@be39fa834029ff78f1a44aa3bb0819b8fc2bd8fd # v4.0.4
+
       - name: Configure Android SDK
         run: |
           sdkmanager 'platforms;android-35' 'build-tools;36.0.0'
