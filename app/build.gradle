@@ -43,7 +43,7 @@ android {
 chaquopy {
     defaultConfig {
         version '3.12'
-        buildPython '/usr/bin/python3'
+        buildPython providers.gradleProperty('chaquopy.buildPython').getOrElse('/usr/bin/python3')
         pip {
             options '--no-deps', '--find-links', rootProject.file('vendor/wheels').toString()
             install 'pymobiledevice3==11.12.5'

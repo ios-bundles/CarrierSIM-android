@@ -1,0 +1,145 @@
+name: Attested Android release
+
+on:
+  push:
+    tags: ['v*']
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: release-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  release:
+    if: startsWith(github.ref, 'refs/tags/v')
+    runs-on: ubuntu-24.04
+    timeout-minutes: 40
+    permissions:
+      contents: write
+      id-token: write
+      attestations: write
+      artifact-metadata: write
+    steps:
+      - name: Check out release tag
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      - name: Set up Java
+        uses: actions/setup-java@de7274f081f381c8f8158605e0321c36c376e2e6 # v6.0.1
+        with:
+          distribution: temurin
+          java-version: '21'
+
+      - name: Set up Python
+        uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7.0.0
+        with:
+          python-version: '3.12'
+
+      - name: Validate tag and test adapters
+        env:
+          RELEASE_TAG: ${{ github.ref_name }}
+        run: |
+          python - <<'PY'
+          import os, re
+          from pathlib import Path
+          version = re.search(r"versionName\s+'([^']+)'", Path('app/build.gradle').read_text()).group(1)
+          assert os.environ['RELEASE_TAG'] == 'v' + version, 'Release tag must match versionName'
+          PY
+          PYTHONPATH=app/src/main/python python -m unittest discover -s tests
+          mkdir -p build/gate-tests
+          javac -d build/gate-tests app/src/main/java/ru/carriersim/android/DeviceGate.java tests/DeviceGateTest.java
+          java -cp build/gate-tests ru.carriersim.android.DeviceGateTest
+
+      - name: Configure Android SDK
+        run: |
+          sdkmanager 'platforms;android-35' 'build-tools;36.0.0'
+          python - <<'PY'
+          import os
+          from pathlib import Path
+          Path('local.properties').write_text('sdk.dir=' + os.environ['ANDROID_HOME'] + '\n')
+          PY
+
+      - name: Restore release signing key
+        env:
+          KEYSTORE_BASE64: ${{ secrets.ANDROID_KEYSTORE_BASE64 }}
+          STORE_PASSWORD: ${{ secrets.ANDROID_STORE_PASSWORD }}
+          KEY_PASSWORD: ${{ secrets.ANDROID_KEY_PASSWORD }}
+          KEY_ALIAS: ${{ secrets.ANDROID_KEY_ALIAS }}
+        run: |
+          python - <<'PY'
+          import base64, os
+          from pathlib import Path
+          for name in ('KEYSTORE_BASE64', 'STORE_PASSWORD', 'KEY_PASSWORD', 'KEY_ALIAS'):
+              if not os.environ.get(name):
+                  raise SystemExit('Missing release signing secret: ' + name)
+          directory = Path('.signing')
+          directory.mkdir(mode=0o700)
+          key = directory / 'release.jks'
+          key.write_bytes(base64.b64decode(os.environ['KEYSTORE_BASE64'], validate=True))
+          key.chmod(0o600)
+          def escape(value):
+              return value.replace('\\', '\\\\').replace('\n', '\\n').replace('\r', '\\r')
+          properties = Path('signing.properties')
+          properties.write_text('storeFile=.signing/release.jks\n' + ''.join(
+              f'{key}={escape(os.environ[env])}\n' for key, env in (
+                  ('storePassword', 'STORE_PASSWORD'), ('keyPassword', 'KEY_PASSWORD'), ('keyAlias', 'KEY_ALIAS'))))
+          properties.chmod(0o600)
+          PY
+
+      - name: Build signed release and run Android Lint
+        run: ./gradlew --no-daemon -Pchaquopy.buildPython="$(command -v python)" :app:lintRelease :app:assembleRelease
+
+      - name: Verify and package release
+        env:
+          RELEASE_TAG: ${{ github.ref_name }}
+        run: |
+          mkdir -p build/release
+          cp app/build/outputs/apk/release/app-release.apk "build/release/CarrierSIM-Android-${RELEASE_TAG}.apk"
+          "$ANDROID_HOME/build-tools/36.0.0/apksigner" verify --verbose --print-certs "build/release/CarrierSIM-Android-${RELEASE_TAG}.apk"
+          "$ANDROID_HOME/build-tools/36.0.0/zipalign" -c -P 16 4 "build/release/CarrierSIM-Android-${RELEASE_TAG}.apk"
+          "$ANDROID_HOME/build-tools/36.0.0/aapt" dump xmltree "build/release/CarrierSIM-Android-${RELEASE_TAG}.apk" AndroidManifest.xml > build/release-manifest.txt
+          if grep -q 'android:debuggable' build/release-manifest.txt; then
+            echo 'Release must not be debuggable' >&2
+            exit 1
+          fi
+          (cd build/release && sha256sum *.apk > SHA256SUMS)
+
+      - name: Remove private signing files
+        if: always()
+        run: rm -rf .signing signing.properties
+
+      - name: Attest APK build provenance
+        id: attest
+        uses: actions/attest@1e69f48acb82d1966a394da916b4c1698aa569d6 # v4.2.2
+        with:
+          subject-path: build/release/*.apk
+
+      - name: Save attestation bundle
+        env:
+          ATTESTATION_BUNDLE: ${{ steps.attest.outputs.bundle-path }}
+        run: cp "$ATTESTATION_BUNDLE" build/release/attestation.sigstore.json
+
+      - name: Upload release artifacts
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        with:
+          name: CarrierSIM-Android-${{ github.ref_name }}
+          path: build/release/
+          if-no-files-found: error
+          retention-days: 30
+
+      - name: Publish GitHub release
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GH_REPO: ${{ github.repository }}
+          RELEASE_TAG: ${{ github.ref_name }}
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+          text = Path('CHANGELOG.md').read_text()
+          Path('build/release-notes.md').write_text(text.split('\n## ', 1)[1].split('\n', 1)[1])
+          PY
+          gh release create "$RELEASE_TAG" build/release/* --verify-tag --title "CarrierSIM Android $RELEASE_TAG" --notes-file build/release-notes.md

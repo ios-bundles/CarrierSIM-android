@@ -118,6 +118,20 @@ adb install -r build/CarrierSIM-Android-debug.apk
 
 Отладочный APK и релизный APK подписаны разными ключами. Релиз нельзя установить поверх прежней отладочной версии; перед переходом экспортируйте нужные отчёты и копии, затем удалите отладочную версию и установите релиз. Последующие релизы с той же подписью устанавливаются как обычные обновления.
 
+## GitHub Actions и аттестация релиза
+
+Подписанная релизная сборка запускается автоматически при push тега `v*`. Тег должен совпадать с `versionName` в `app/build.gradle`, например `v1.0.0`. Повторный запуск доступен через Actions → Attested Android release → Run workflow с выбором тега.
+
+Workflow проверяет адаптеры и Android Lint, собирает APK на GitHub-hosted runner, проверяет подпись и выравнивание, создаёт **GitHub Artifact Attestation** и публикует GitHub Release с APK, SHA-256 и файлом `attestation.sigstore.json`. Actions закреплены по SHA коммитов.
+
+Для подписи нужны repository secrets: `ANDROID_KEYSTORE_BASE64` (релизный ключ в Base64), `ANDROID_STORE_PASSWORD`, `ANDROID_KEY_PASSWORD` и `ANDROID_KEY_ALIAS`. Используйте тот же ключ, что и для предыдущих релизов. Приватные файлы удаляются после сборки и не входят в артефакты.
+
+Проверка происхождения скачанного APK:
+
+```sh
+gh attestation verify CarrierSIM-Android-v1.0.0.apk --repo ios-bundles/CarrierSIM-android
+```
+
 ## Структура проекта
 
 - `app/src/main/python/` — оригинальное ядро v6 и отдельные Android-адаптеры.
