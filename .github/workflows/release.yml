@@ -37,7 +37,7 @@ jobs:
       - name: Set up Python
         uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7.0.0
         with:
-          python-version: '3.12'
+          python-version: '3.11'
 
       - name: Validate tag and test adapters
         env:
@@ -102,6 +102,13 @@ jobs:
         run: |
           mkdir -p build/release
           cp app/build/outputs/apk/release/app-release.apk "build/release/CarrierSIM-Android-${RELEASE_TAG}.apk"
+          python - <<'PY'
+          import os
+          from zipfile import ZipFile
+          with ZipFile(f"build/release/CarrierSIM-Android-{os.environ['RELEASE_TAG']}.apk") as apk:
+              for abi in ('armeabi-v7a', 'arm64-v8a'):
+                  assert f'lib/{abi}/libpython3.11.so' in apk.namelist(), f'Missing Python runtime for {abi}'
+          PY
           "$ANDROID_HOME/build-tools/36.0.0/apksigner" verify --verbose --print-certs "build/release/CarrierSIM-Android-${RELEASE_TAG}.apk"
           "$ANDROID_HOME/build-tools/36.0.0/zipalign" -c -P 16 4 "build/release/CarrierSIM-Android-${RELEASE_TAG}.apk"
           "$ANDROID_HOME/build-tools/36.0.0/aapt" dump xmltree "build/release/CarrierSIM-Android-${RELEASE_TAG}.apk" AndroidManifest.xml > build/release-manifest.txt
@@ -143,6 +150,6 @@ jobs:
           python - <<'PY'
           from pathlib import Path
           text = Path('CHANGELOG.md').read_text()
-          Path('build/release-notes.md').write_text(text.split('\n## ', 1)[1].split('\n', 1)[1])
+          Path('build/release-notes.md').write_text(text.split('\n## ', 1)[1].split('\n', 1)[1].split('\n## ', 1)[0].strip() + '\n')
           PY
           gh release create "$RELEASE_TAG" build/release/* --verify-tag --title "CarrierSIM Android $RELEASE_TAG" --notes-file build/release-notes.md

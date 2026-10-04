@@ -2,7 +2,7 @@
 
 Установка операторских профилей и диагностика сотовой связи и установленных профилей на iPhone с Android-телефона — без компьютера и без root на Android. Соедините телефоны кабелем USB-C ↔ USB-C или через OTG-переходник и кабель для iPhone, разрешите USB-доступ и подтвердите доверие.
 
-Это Android-приложение на основе **[основного проекта CarrierSIM](https://github.com/ios-bundles/CarrierSIM)**. Оригинальное Python-ядро [CarrierSIM v6](https://github.com/ios-bundles/CarrierSIM/releases/tag/v6) встроено в APK вместе с Python 3.12. Устанавливать Python, драйверы или отдельные инструменты на Android не нужно.
+Это Android-приложение на основе **[основного проекта CarrierSIM](https://github.com/ios-bundles/CarrierSIM)**. Оригинальное Python-ядро [CarrierSIM v6](https://github.com/ios-bundles/CarrierSIM/releases/tag/v6) встроено в APK вместе с Python 3.11. Устанавливать Python, драйверы или отдельные инструменты на Android не нужно.
 
 <p align="center">
   <img src="docs/images/app-screen.avif" alt="Главный экран CarrierSIM Android с подключённым iPhone и двумя eSIM" height="480" />
@@ -27,7 +27,7 @@
 
 ## Требования
 
-- Android 8.0 или новее, процессор ARM64 и поддержка USB Host/OTG.
+- Android 8.0 или новее, 32- или 64-битная система ARM и поддержка USB Host/OTG.
 - Разблокированный iPhone с активной SIM/eSIM для работы с операторскими профилями.
 - Кабель USB-C ↔ USB-C с передачей данных либо OTG-переходник на стороне Android и кабель USB-A ↔ USB-C/Lightning для iPhone.
 - Интернет для загрузки каталога профилей; уже загруженный каталог сохраняется локально.
@@ -84,7 +84,7 @@
 
 ## Сборка из исходников
 
-Нужны JDK 17 или новее, Android SDK Platform 35 и Python для сборщика Chaquopy. Путь SDK задаётся в локальном `local.properties`:
+Нужны JDK 17 или новее, Android SDK Platform 35 и Python 3.11 для сборщика Chaquopy. Путь SDK задаётся в локальном `local.properties`:
 
 ```properties
 sdk.dir=/path/to/android-sdk
@@ -103,7 +103,7 @@ adb install -r build/CarrierSIM-Android-debug.apk
 
 ### Релизная сборка
 
-Первый релиз приложения — **1.0.0**, ядро — **v6**. Релизная сборка отключает Android-отладку и использует отдельный ключ подписи.
+Текущий релиз приложения — **1.1.0**, ядро — **v6**. Релизная сборка отключает Android-отладку и использует отдельный ключ подписи.
 
 1. Создайте собственный ключ подписи, если его ещё нет:
 
@@ -128,7 +128,7 @@ adb install -r build/CarrierSIM-Android-debug.apk
 
 ## GitHub Actions и аттестация релиза
 
-Подписанная релизная сборка запускается автоматически при push тега `v*`. Тег должен совпадать с `versionName` в `app/build.gradle`, например `v1.0.0`. Повторный запуск доступен через Actions → Attested Android release → Run workflow с выбором тега.
+Подписанная релизная сборка запускается автоматически при push тега `v*`. Тег должен совпадать с `versionName` в `app/build.gradle`, например `v1.1.0`. Повторный запуск доступен через Actions → Attested Android release → Run workflow с выбором тега.
 
 Workflow проверяет адаптеры и Android Lint, собирает APK на GitHub-hosted runner, проверяет подпись и выравнивание, создаёт **GitHub Artifact Attestation** и публикует GitHub Release с APK, SHA-256 и файлом `attestation.sigstore.json`. Actions закреплены по SHA коммитов.
 
@@ -137,7 +137,7 @@ Workflow проверяет адаптеры и Android Lint, собирает A
 Проверка происхождения скачанного APK:
 
 ```sh
-gh attestation verify CarrierSIM-Android-v1.0.0.apk --repo ios-bundles/CarrierSIM-android
+gh attestation verify CarrierSIM-Android-v1.1.0.apk --repo ios-bundles/CarrierSIM-android
 ```
 
 ## Структура проекта

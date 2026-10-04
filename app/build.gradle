@@ -12,12 +12,12 @@ android {
         applicationId 'ru.carriersim.android'
         minSdk 26
         targetSdk 35
-        versionCode 4
-        versionName '1.0.0'
+        versionCode 5
+        versionName '1.1.0'
         def coreVersion = (file('src/main/python/carriersim_version.py').text =~ /(?m)^VERSION\s*=\s*['"]([^'"]+)['"]/)
         if (!coreVersion.find()) throw new GradleException('Core VERSION is missing')
         resValue 'string', 'core_version', coreVersion.group(1)
-        ndk { abiFilters 'arm64-v8a' }
+        ndk { abiFilters 'armeabi-v7a', 'arm64-v8a' }
     }
     signingConfigs {
         development { storeFile rootProject.file('build/debug.keystore'); storePassword 'android'; keyAlias 'androiddebugkey'; keyPassword 'android' }
@@ -42,8 +42,8 @@ android {
 }
 chaquopy {
     defaultConfig {
-        version '3.12'
-        buildPython providers.gradleProperty('chaquopy.buildPython').getOrElse('/usr/bin/python3')
+        version '3.11'
+        buildPython providers.gradleProperty('chaquopy.buildPython').getOrElse('python3.11')
         pip {
             options '--no-deps', '--find-links', rootProject.file('vendor/wheels').toString()
             install 'pymobiledevice3==11.12.5'
