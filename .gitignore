@@ -1,0 +1,55 @@
+# Gradle / Android build output
+.gradle/
+.kotlin/
+build/
+.externalNativeBuild/
+.cxx/
+*.apk
+*.aab
+*.ap_
+*.dex
+*.class
+
+# Local SDK paths and signing configuration
+/local.properties
+/keystore.properties
+/signing.properties
+/.signing/
+*.keystore
+*.jks
+*.p12
+*.pfx
+
+# IDE and operating-system files
+.idea/
+*.iml
+.DS_Store
+Thumbs.db
+*~
+*.swp
+*.swo
+
+# Python caches and local environments
+__pycache__/
+*.py[cod]
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.coverage
+.coverage.*
+htmlcov/
+.venv/
+venv/
+
+# Local secrets, logs and device-session data
+.env
+.env.*
+!.env.example
+*.log
+/runs/
+/work/
+
+# Keep required archives and bundled dependencies versioned:
+# app/src/main/assets/carriersim/assets.zip
+# gradle/wrapper/gradle-wrapper.jar
+# vendor/wheels/*.whl

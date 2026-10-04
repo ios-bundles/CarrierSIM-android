@@ -1,0 +1,92 @@
+plugins { id 'com.android.application'; id 'com.chaquo.python' }
+
+def releaseSigning = new Properties()
+def releaseSigningFile = rootProject.file('signing.properties')
+if (releaseSigningFile.exists()) releaseSigningFile.withInputStream { releaseSigning.load(it) }
+
+android {
+    namespace 'ru.carriersim.android'
+    compileSdk 35
+    buildFeatures { resValues = true }
+    defaultConfig {
+        applicationId 'ru.carriersim.android'
+        minSdk 26
+        targetSdk 35
+        versionCode 4
+        versionName '1.0.0'
+        def coreVersion = (file('src/main/python/carriersim_version.py').text =~ /(?m)^VERSION\s*=\s*['"]([^'"]+)['"]/)
+        if (!coreVersion.find()) throw new GradleException('Core VERSION is missing')
+        resValue 'string', 'core_version', coreVersion.group(1)
+        ndk { abiFilters 'arm64-v8a' }
+    }
+    signingConfigs {
+        development { storeFile rootProject.file('build/debug.keystore'); storePassword 'android'; keyAlias 'androiddebugkey'; keyPassword 'android' }
+        if (!releaseSigning.isEmpty()) {
+            release {
+                storeFile rootProject.file(releaseSigning.getProperty('storeFile'))
+                storePassword releaseSigning.getProperty('storePassword')
+                keyAlias releaseSigning.getProperty('keyAlias')
+                keyPassword releaseSigning.getProperty('keyPassword')
+            }
+        }
+    }
+    buildTypes {
+        debug { signingConfig signingConfigs.development }
+        release {
+            debuggable false
+            minifyEnabled false
+            if (!releaseSigning.isEmpty()) signingConfig signingConfigs.release
+        }
+    }
+    compileOptions { sourceCompatibility JavaVersion.VERSION_1_8; targetCompatibility JavaVersion.VERSION_1_8 }
+}
+chaquopy {
+    defaultConfig {
+        version '3.12'
+        buildPython '/usr/bin/python3'
+        pip {
+            options '--no-deps', '--find-links', rootProject.file('vendor/wheels').toString()
+            install 'pymobiledevice3==11.12.5'
+            install 'cryptography==42.0.8'
+            install 'cffi==1.17.1'
+            install 'chaquopy-libffi==3.3'
+            install 'pycparser==2.22'
+            install 'construct==2.10.70'
+            install 'construct-typing==0.8.1'
+            install 'pygments==2.19.2'
+            install 'packaging==25.0'
+            install 'typing_extensions==4.15.0'
+            install 'requests==2.32.5'
+            install 'urllib3==2.5.0'
+            install 'certifi==2026.7.22'
+            install 'charset-normalizer==3.4.3'
+            install 'idna==3.10'
+            install 'coloredlogs==15.0.1'
+            install 'humanfriendly==10.0'
+            install 'hexdump==3.3'
+            install 'questionary==2.1.1'
+            install 'prompt_toolkit==3.0.52'
+            install 'wcwidth==0.2.14'
+            install 'traitlets==5.14.3'
+            install 'tqdm==4.67.1'
+            install 'parameter_decorators==0.0.2'
+            install 'xonsh==0.24.2'
+            install 'pygnuutils==0.1.1'
+            install 'click==8.1.8'
+            install 'defusedxml==0.7.1'
+            install 'asn1==2.8.0'
+            install 'enum-compat==0.0.3'
+            install 'ifaddr==0.2.0'
+        }
+    }
+}
+
+// Never produce an unsigned APK by accident when requesting a release.
+tasks.register('requireReleaseSigning') {
+    doLast {
+        if (releaseSigning.isEmpty() || !['storeFile', 'storePassword', 'keyAlias', 'keyPassword'].every { releaseSigning.getProperty(it) }) {
+            throw new GradleException('Configure local signing.properties before building a release; see signing.properties.example')
+        }
+    }
+}
+tasks.matching { it.name == 'preReleaseBuild' }.configureEach { dependsOn 'requireReleaseSigning' }

@@ -1,0 +1,16 @@
+<manifest xmlns:android="http://schemas.android.com/apk/res/android" >
+    <uses-permission android:name="android.permission.INTERNET"/>
+    <uses-permission android:name="android.permission.FOREGROUND_SERVICE"/>
+    <uses-permission android:name="android.permission.FOREGROUND_SERVICE_CONNECTED_DEVICE"/>
+    <uses-permission android:name="android.permission.WAKE_LOCK"/>
+    <uses-feature android:name="android.hardware.usb.host" android:required="true"/>
+    <application android:label="CarrierSIM" android:icon="@drawable/ic_carriersim" android:theme="@style/CarrierTheme" android:allowBackup="false">
+        <provider android:name=".ExportProvider" android:authorities="ru.carriersim.android.exports" android:exported="false" android:grantUriPermissions="true"/>
+        <service android:name=".CarrierService" android:exported="false" android:foregroundServiceType="connectedDevice"/>
+        <activity android:name=".MainActivity" android:exported="true">
+            <intent-filter><action android:name="android.intent.action.MAIN"/><category android:name="android.intent.category.LAUNCHER"/></intent-filter>
+            <intent-filter><action android:name="android.hardware.usb.action.USB_DEVICE_ATTACHED"/></intent-filter>
+            <meta-data android:name="android.hardware.usb.action.USB_DEVICE_ATTACHED" android:resource="@xml/device_filter"/>
+        </activity>
+    </application>
+</manifest>

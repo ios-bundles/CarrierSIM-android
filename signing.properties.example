@@ -1,0 +1,6 @@
+# Copy to signing.properties and configure your private release key.
+# Paths are relative to the repository root. Never commit the real file or key.
+storeFile=.signing/release.jks
+storePassword=CHANGE_ME
+keyAlias=carriersim
+keyPassword=CHANGE_ME

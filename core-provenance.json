@@ -1,0 +1,17 @@
+{
+  "repository": "https://github.com/ios-bundles/CarrierSIM",
+  "tag": "v6",
+  "commit": "e34e8b97bb968c983e82a16f2253eb5350e0e78b",
+  "sha256": {
+    "carrier.py": "65635daac159a328d3dda4d0ace511247204c0c5e3c855a731320ba6aef7bdb7",
+    "airtraffic_native.py": "f30ea1eb2dab6b9ce69055fcb8fa3d9026ef7203509263b13fabb3d98177a812",
+    "airtraffic_apple.py": "8a8cf61a063de8d32e409146503d24aa5173bde18dc0d6dec28f7c232f37deb0",
+    "device_models.py": "0ce19e5ae6ba4a410d81e1041f410eeec77b7d7435a80ab57ca31199a46aee4a",
+    "carriersim_version.py": "d6edaeb01b787c1211efab83a5dba8d237d4ca2cff7c753fbf9d4048d53a8044",
+    "assets.zip": "3b47408c5d2deb941d8b94c64724f5b72357dc39911ec9e77b7e4b3ccfb8659f",
+    "bundle.yaml": "f435ccba236a194483f6df99fa365dfb3f6adcc2baf941b74b9bdc42a246c9a0",
+    "LICENSE": "8e178138b509575ec935106530535303e81f19780dbc731f758d508dffeaa14a",
+    "LICENSE-AirLift.txt": "65a15cb14444f04e048d81c4efdc176cb597c2bbd5846dcbdce6e2f742945581",
+    "LICENSE-AirCard.txt": "1126322e2cc8d165adc4c792eeb195717de2bcc7b39be1ce77959d78e87ef685"
+  }
+}

@@ -1,0 +1,16 @@
+# Бандл по умолчанию для SIM операторов России (250) и Беларуси (257); зарубежные SIM он не трогает
+default: Vodafone_hu
+# Можете выбрать бандл для конкретного оператора (250 01 = MTS RUS), MCCMNC без пробела
+25001: Vodafone_ro
+
+### Беларусь (2G-5G переключатели, VoLTE+EVS работают, 5G n7 работает, значок LTE)
+# A1 BY
+25701: MTS_ua
+# MTS BY
+25702: MTS_ua
+# Life BY
+25704: MTS_ua
+# Beltelecom
+25705: MTS_ua
+# BeCloud / UNET
+25706: MTS_ua
