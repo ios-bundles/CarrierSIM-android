@@ -4,6 +4,13 @@
 
 Это Android-приложение на основе **[основного проекта CarrierSIM](https://github.com/ios-bundles/CarrierSIM)**. Оригинальное Python-ядро [CarrierSIM v6](https://github.com/ios-bundles/CarrierSIM/releases/tag/v6) встроено в APK вместе с Python 3.12. Устанавливать Python, драйверы или отдельные инструменты на Android не нужно.
 
+<p align="center">
+  <img src="docs/images/app-screen.avif" alt="Главный экран CarrierSIM Android с подключённым iPhone и двумя eSIM" height="480" />
+  <img src="docs/images/phone-connection.avif" alt="Android и iPhone, соединённые кабелем USB-C для установки профилей и диагностики сотовой связи" height="480" />
+</p>
+
+<p align="center"><em>Интерфейс приложения и подключение iPhone к Android по USB-C.</em></p>
+
 ## Для чего
 
 Приложение позволяет устанавливать операторские профили на iPhone, возвращать штатные настройки и проводить диагностику сотовой связи и установленных профилей. По журналам iOS можно проверять работу VoWiFi, VoLTE, 5G, роуминга и голосовых вызовов, анализировать поведение выбранного профиля и сохранять результаты в отчёт.
